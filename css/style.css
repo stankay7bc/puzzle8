@@ -1,0 +1,8 @@
+pre {
+  margin: 20vh 20vw 0 20vw;
+  padding:5vh;
+  font-size:1.5em;
+  display:flex;
+  justify-content:center;
+  background-color:#e5ebf3;
+}
