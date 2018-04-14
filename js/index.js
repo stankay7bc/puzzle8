@@ -1,6 +1,7 @@
 var DirOffset = {"L":-1, "R": 1, "U":-3, "D":3};
 var board1 = [1,2,3,4,5,6,7,8,"-"];
 var board2 = [1,2,3,4,"-",6,7,8,5];
+var board21 = [1,2,3,6,"-",4,7,8,5];
 var board3 = [1,2,3,4,5,6,"-",7,8];
 var board4 = [1,2,3,4,5,6,7,"-",8];
 var board5 = ["-",1,3,4,2,5,7,8,6];
@@ -75,20 +76,35 @@ function switchTilesToDir(board,dir,numEmpty) {
     });
 }
 
+/* Board Board -> Boolean
+   return true if b1 is equivalent to b2
+*/
+function eqBoards(b1,b2) {
+  return b1.reduce((base,elem,index)=>{
+    return base && (elem===b2[index]); 
+  },true);
+}
+
 /* P8State -> *P8State */
 function produceNeighbourStates(state) {
   let numEmpty = state.board.indexOf("-");
-  return getLegalDirections(state.board,numEmpty).map((dir)=>{
-    let nextState = {};
-    nextState.board = switchTilesToDir(state.board,dir,numEmpty);
-    nextState.moves = state.moves+1;
-    nextState.parent = state;
-    return nextState;
+  let neighbours = [];
+  getLegalDirections(state.board,numEmpty).forEach((dir)=>{
+    let board = switchTilesToDir(state.board,dir,numEmpty);
+    if(state.parent==null ||
+        !eqBoards(board,state.parent.board)) {
+      let nextState = {};
+      nextState.board = board;
+      nextState.moves = state.moves+1;
+      nextState.parent = state;
+      neighbours.push(nextState);
+    }
   }); 
+  return neighbours;
 }
 {
   /*
-  let state1 = {board:board2,moves:0,previous:null};
+  let state1 = {board:board2,moves:0,parent:null};
   let neighbours = produceNeighbourStates(state1);
   console.log(neighbours);
   */
@@ -111,7 +127,7 @@ function countDisplacedTiles(board) {
   //console.log(countDisplacedTiles(board3) ==  2);
 }
 
-/* Queue<X> (X -> Number)-> ... 
+/* Queue<X> (X -> Number)-> DequeueData 
    dequeue according to rules of Priority Queue
    NOTE: to test
 */
@@ -127,10 +143,11 @@ function dequeuePQ(queue,getScore) {
         return data;
       }
     },{score:getScore(queue[0]),index:0,value:queue[0]});
-    queue = queue.filter((elem,index)=>{
-      return index!=maxScoreVI.index; 
-    });
-    return {value:maxScoreVI.value,queue:queue,score:maxScoreVI.score};
+
+    queue[maxScoreVI.index] = queue[queue.length-1];
+    queue.pop();
+
+    return maxScoreVI;
   }
 }
 {
@@ -145,21 +162,19 @@ function dequeuePQ(queue,getScore) {
    NOTE: Doesn't stop!!!
 */
 function searchSolution(state,queue) {
-  queue.push(state); 
-  let item = dequeuePQ(queue,(elem)=>{
-    return (countDisplacedTiles(elem.board)+state.moves)*(-1);
-  });
-  if(countDisplacedTiles(item.value.board)==0) {
-    return item.value;
+  if(countDisplacedTiles(state.board)==0) {
+    return state;
   } else {
-    let neighbours = produceNeighbourStates(item.value);
-    return searchSolution(
-      item.value,
-      item.queue.concat(neighbours));
+    queue = queue.concat(produceNeighbourStates(state));
+    let item = dequeuePQ(queue,(elem)=>{
+      return (countDisplacedTiles(elem.board)+state.moves)*(-1);
+    });
+    debugger;
+    return searchSolution(item.value,queue);
   }
 }
 {
-  let state1 = {board:board5,moves:0,parent:null};
+  let state1 = {board:board2,moves:0,parent:null};
   let p1 = searchSolution(state1,[]);
   console.log(p1);
 }
