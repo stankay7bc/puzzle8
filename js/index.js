@@ -1,3 +1,6 @@
+/*
+https://medium.com/javascript-scene/you-might-not-need-typescript-or-static-types-aa7cb670a77b
+*/
 var DirOffset = {"L":-1, "R": 1, "U":-3, "D":3};
 var board1 = [1,2,3,4,5,6,7,8,"-"];
 var board2 = [1,2,3,4,"-",6,7,8,5];
@@ -97,6 +100,7 @@ function produceNeighbourStates(state) {
       nextState.board = board;
       nextState.moves = state.moves+1;
       nextState.parent = state;
+      nextState.score = countDisplacedTiles(board);
       neighbours.push(nextState);
     }
   }); 
@@ -127,15 +131,16 @@ function countDisplacedTiles(board) {
   //console.log(countDisplacedTiles(board3) ==  2);
 }
 
-/* Queue<X> (X -> Number)-> DequeueData 
-   dequeue according to rules of Priority Queue
-   NOTE: to test
-*/
+/** 
+ * Queue<X> (X -> Number)-> DequeueData 
+ * dequeue according to rules of Priority Queue
+ * NOTE: to test
+ */
 function dequeuePQ(queue,getScore) {
   if(queue.length==0) {
     
   } else {
-    let maxScoreVI = queue.reduce((data,elem,index)=>{
+    let searchData = queue.reduce((data,elem,index)=>{
       let currentScore = getScore(elem);
       if (currentScore>data.score) {
         return {score:currentScore,index:index,value:elem};
@@ -144,10 +149,9 @@ function dequeuePQ(queue,getScore) {
       }
     },{score:getScore(queue[0]),index:0,value:queue[0]});
 
-    queue[maxScoreVI.index] = queue[queue.length-1];
+    queue[searchData.index] = queue[queue.length-1];
     queue.pop();
-
-    return maxScoreVI;
+    return searchData.value;
   }
 }
 {
@@ -158,24 +162,29 @@ function dequeuePQ(queue,getScore) {
   */
 }
 
-/* P8State Queue -> P8State
-   NOTE: Doesn't stop!!!
-*/
-function searchSolution(state,queue) {
-  if(countDisplacedTiles(state.board)==0) {
-    return state;
-  } else {
+/** 
+  * P8State Queue -> P8State
+  * NOTE: Doesn't stop!!!
+  */
+function searchSolution(state) {
+  let queue = [];
+  while(state.score!=0) {
     queue = queue.concat(produceNeighbourStates(state));
-    let item = dequeuePQ(queue,(elem)=>{
-      return (countDisplacedTiles(elem.board)+state.moves)*(-1);
+    state = dequeuePQ(queue,(elem)=>{
+      return (elem.score+state.moves)*(-1);
     });
     debugger;
-    return searchSolution(item.value,queue);
   }
+  return state;
 }
 {
-  let state1 = {board:board2,moves:0,parent:null};
-  let p1 = searchSolution(state1,[]);
+  let theBoard = board5;
+  let state1 = {
+    board:theBoard,
+    score:countDisplacedTiles(theBoard),
+    moves:0,
+    parent:null};
+  let p1 = searchSolution(state1);
   console.log(p1);
 }
 
