@@ -1,6 +1,9 @@
 /*
 https://medium.com/javascript-scene/you-might-not-need-typescript-or-static-types-aa7cb670a77b
 */
+
+const assert = require('assert');
+
 var DirOffset = {"L":-1, "R": 1, "U":-3, "D":3};
 var board1 = [1,2,3,4,5,6,7,8,"-"];
 var board2 = [1,2,3,4,"-",6,7,8,5];
@@ -63,9 +66,14 @@ function makeMove(board,dir) {
   }
 }
 
-/* Board Direction Natural -> Board
-   switch tiles in board
-*/
+/**
+ * Produce a Board with an empty tile 
+ * at position numEmpty switched to dir 
+ * @param {Board} board 
+ * @param {Direction} dir 
+ * @param {Natural} numEmpty 
+ * @returns Board
+ */
 function switchTilesToDir(board,dir,numEmpty) {
     let newEmpty = numEmpty+DirOffset[dir];
     return board.map((tile,index)=>{
@@ -79,16 +87,23 @@ function switchTilesToDir(board,dir,numEmpty) {
     });
 }
 
-/* Board Board -> Boolean
-   return true if b1 is equivalent to b2
-*/
+/**
+ * Return true if b1 is equivalent to b2
+ * @param {Board} b1 
+ * @param {Board} b2 
+ * @returns Boolean
+ */
 function eqBoards(b1,b2) {
   return b1.reduce((base,elem,index)=>{
     return base && (elem===b2[index]); 
   },true);
 }
 
-/* P8State -> *P8State */
+/**
+ * Create an array of neighbouring states 
+ * @param {P8State} state 
+ * @returns P8State*
+ */
 function produceNeighbourStates(state) {
   let numEmpty = state.board.indexOf("-");
   let neighbours = [];
@@ -110,11 +125,15 @@ function produceNeighbourStates(state) {
   /*
   let state1 = {board:board2,moves:0,parent:null};
   let neighbours = produceNeighbourStates(state1);
-  console.log(neighbours);
   */
 }
 
-/* Board -> Natural */
+/**
+ * Count number of tiles on the board
+ * that are out of order 
+ * @param {Board} board 
+ * @returns natural 
+ */
 function countDisplacedTiles(board) {
   return board.reduce((total,tile,cellNum)=>{
     let gain;
@@ -127,22 +146,28 @@ function countDisplacedTiles(board) {
   },0);
 }
 {
-  //console.log(countDisplacedTiles(board1) == 0);
-  //console.log(countDisplacedTiles(board3) ==  2);
+
 }
 
+function comp(a,b,op) {
+  if(op) {
+    return a > b;
+  } else {
+    return a < b;
+  }
+}
 /** 
- * Queue<X> (X -> Number)-> DequeueData 
+ * Queue<X> (X -> Number) Boolean -> DequeueData 
  * dequeue according to rules of Priority Queue
  * NOTE: to test
  */
-function dequeuePQ(queue,getScore) {
+function dequeuePQ(queue,getScore,max=true) {
   if(queue.length==0) {
     
   } else {
     let searchData = queue.reduce((data,elem,index)=>{
       let currentScore = getScore(elem);
-      if (currentScore>data.score) {
+      if (comp(currentScore,data.score,max)) {
         return {score:currentScore,index:index,value:elem};
       } else {
         return data;
@@ -155,30 +180,32 @@ function dequeuePQ(queue,getScore) {
   }
 }
 {
-  /*
   let queue1 = [1,3,2];
-  console.log(dequeuePQ(queue1,(elem)=>{return elem;})); // 3
-  console.log(queue1); // [1, 2]
-  */
+  assert.equal(dequeuePQ(queue1,(elem)=>{return elem;}),3); 
+  assert.deepEqual(queue1,[1,2]); 
+
+  queue1 = [1,3,2];
+  assert.equal(dequeuePQ(queue1,(elem)=>{return elem*-1;}),1); 
+  assert.deepEqual(queue1,[2,3]); 
 }
 
 /** 
   * P8State Queue -> P8State
-  * NOTE: Doesn't stop!!!
+  * NOTE: Doesn't stop when the board with 
+  *       no solution is consumed
   */
 function searchSolution(state) {
   let queue = [];
   while(state.score!=0) {
     queue = queue.concat(produceNeighbourStates(state));
-    state = dequeuePQ(queue,(elem)=>{
-      return (elem.score+state.moves)*(-1);
-    });
+    state = dequeuePQ(
+      queue,(elem)=>{return (elem.score+elem.moves);},false);
     debugger;
   }
   return state;
 }
 {
-  let theBoard = board5;
+  let theBoard = board21;
   let state1 = {
     board:theBoard,
     score:countDisplacedTiles(theBoard),
