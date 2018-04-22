@@ -1,8 +1,14 @@
 /*
-https://medium.com/javascript-scene/you-might-not-need-typescript-or-static-types-aa7cb670a77b
+
+https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators
+
 */
 
-const assert = require('assert');
+var runTests = false;
+
+if (runTests) {
+  const assert = require('assert');
+}
 
 var DirOffset = {"L":-1, "R": 1, "U":-3, "D":3};
 var board1 = [1,2,3,4,5,6,7,8,"-"];
@@ -106,26 +112,24 @@ function eqBoards(b1,b2) {
  */
 function produceNeighbourStates(state) {
   let numEmpty = state.board.indexOf("-");
-  let neighbours = [];
-  getLegalDirections(state.board,numEmpty).forEach((dir)=>{
-    let board = switchTilesToDir(state.board,dir,numEmpty);
-    if(state.parent==null ||
-        !eqBoards(board,state.parent.board)) {
-      let nextState = {};
-      nextState.board = board;
-      nextState.moves = state.moves+1;
-      nextState.parent = state;
-      nextState.score = countDisplacedTiles(board);
-      neighbours.push(nextState);
-    }
-  }); 
-  return neighbours;
+  return getLegalDirections(state.board,numEmpty)
+    .reduce((acc,dir)=>{
+      let board = switchTilesToDir(state.board,dir,numEmpty);
+      if(state.parent==null ||
+          !eqBoards(board,state.parent.board)) {
+        let nextState = {};
+        nextState.board = board;
+        nextState.moves = state.moves+1;
+        nextState.parent = state;
+        nextState.score = countDisplacedTiles(board);
+        acc.push(nextState);
+      }
+      return acc;
+  },[]); 
 }
-{
-  /*
+if (runTests) {
   let state1 = {board:board2,moves:0,parent:null};
   let neighbours = produceNeighbourStates(state1);
-  */
 }
 
 /**
@@ -157,13 +161,13 @@ function comp(a,b,op) {
   }
 }
 /** 
- * Queue<X> (X -> Number) Boolean -> DequeueData 
+ * Queue<X> (X -> Number) Boolean -> X 
  * dequeue according to rules of Priority Queue
  * NOTE: to test
  */
 function dequeuePQ(queue,getScore,max=true) {
   if(queue.length==0) {
-    
+    throw new Error("Queue is empty");
   } else {
     let searchData = queue.reduce((data,elem,index)=>{
       let currentScore = getScore(elem);
@@ -179,7 +183,7 @@ function dequeuePQ(queue,getScore,max=true) {
     return searchData.value;
   }
 }
-{
+if (runTests) {
   let queue1 = [1,3,2];
   assert.equal(dequeuePQ(queue1,(elem)=>{return elem;}),3); 
   assert.deepEqual(queue1,[1,2]); 
@@ -200,11 +204,11 @@ function searchSolution(state) {
     queue = queue.concat(produceNeighbourStates(state));
     state = dequeuePQ(
       queue,(elem)=>{return (elem.score+elem.moves);},false);
-    debugger;
+    //debugger;
   }
   return state;
 }
-{
+if (runTests) {
   let theBoard = board21;
   let state1 = {
     board:theBoard,
@@ -212,32 +216,17 @@ function searchSolution(state) {
     moves:0,
     parent:null};
   let p1 = searchSolution(state1);
-  console.log(p1);
+  console.log(stateToArray(p1,[]));
 }
 
-
-function init(board) {
-  
-  let pre = document.querySelector("pre");
-  let messageBox = document.querySelector("#message");
-  pre.textContent = boardToString(board);
-  let arrows = {
-    "ArrowUp": "D",
-    "ArrowDown": "U",
-    "ArrowLeft": "R",
-    "ArrowRight": "L",
-  };
-  document.addEventListener("keydown",(event) => {
-    const keyName = event.key;
-    try {
-      if(arrows.hasOwnProperty(keyName)) {
-        board = makeMove(board,arrows[keyName]);
-        pre.textContent = boardToString(board);
-      }
-    } catch (e) {
-      //console.log(e.message);
+/**
+ * Produce an array of boards
+ * P8State Array<<Board>> -> Array<<Board>>
+ */
+function stateToArray(state,acc) {
+    if(state==null) {
+        return acc;
+    } else {
+        return stateToArray(state.parent,acc.concat([state.board]));
     }
-  }); 
 }
-
-//init(board2);

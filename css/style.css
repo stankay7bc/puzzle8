@@ -1,8 +1,19 @@
-pre {
-  margin: 20vh 20vw 0 20vw;
+main {
+  /* outline:1px solid blue; */
+  margin: 10vh 0vw 0 0vw;
   padding:5vh;
-  font-size:1.5em;
   display:flex;
-  justify-content:center;
+  align-items:center;
+  flex-direction: column;
+}
+
+main > section:nth-of-type(1) > pre {
+  /* outline:1px solid blue; */
   background-color:#e5ebf3;
+  padding:20px;
+  font-size:2em;
+}
+
+main > section:nth-of-type(2) > button {
+  font-size:1.5em;
 }
