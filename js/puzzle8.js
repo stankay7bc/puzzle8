@@ -1,7 +1,5 @@
 /*
 
-https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Iterators_and_Generators
-
 */
 
 var runTests = false;
@@ -153,17 +151,20 @@ function countDisplacedTiles(board) {
 
 }
 
-function comp(a,b,op) {
-  if(op) {
-    return a > b;
-  } else {
-    return a < b;
-  }
-}
+/**
+ * @param {Number} a 
+ * @param {Number} b 
+ * @param {Boolean} op 
+ * @returns Boolean
+ */
+function comp(a,b,op) { return op ? a > b : a < b;}
+
 /** 
- * Queue<X> (X -> Number) Boolean -> X 
- * dequeue according to rules of Priority Queue
- * NOTE: to test
+ * Dequeue according to rules of Priority Queue
+ * @param {Queue<X>} queue
+ * @param {(X -> Number)} getScore
+ * @param {Boolean} max
+ * @returns {X}
  */
 function dequeuePQ(queue,getScore,max=true) {
   if(queue.length==0) {
@@ -194,9 +195,11 @@ if (runTests) {
 }
 
 /** 
-  * P8State Queue -> P8State
+  * Search for a solution to state
   * NOTE: Doesn't stop when the board with 
-  *       no solution is consumed
+  *       no solution is in the inital state
+  * @param {P8State} state
+  * @returns {P8State}
   */
 function searchSolution(state) {
   let queue = [];
@@ -220,8 +223,10 @@ if (runTests) {
 }
 
 /**
- * Produce an array of boards
- * P8State Array<<Board>> -> Array<<Board>>
+ * Produce an array of Boards
+ * @param {P8State} state
+ * @param {Array} acc
+ * @returns {Array}
  */
 function stateToArray(state,acc) {
     if(state==null) {
