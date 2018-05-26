@@ -3,13 +3,16 @@
 function init(board) {
   
   let pre = document.querySelector("main > section:nth-of-type(1) > pre");
+  
   pre.textContent = boardToString(board);
+  
   let arrows = {
     "ArrowUp": "D",
     "ArrowDown": "U",
     "ArrowLeft": "R",
     "ArrowRight": "L",
   };
+  
   document.addEventListener("keydown",(event) => {
     const keyName = event.key;
     try {
@@ -30,18 +33,19 @@ function init(board) {
     return boards.length==0;
   }
 
-  let emptyFunc = () => {};
-
    let button = document.querySelector("main > section:nth-of-type(2) > button");
+   
    button.addEventListener("click",(event)=>{
      let state1 = {
        board:board,
        score:countDisplacedTiles(board),
        moves:0,
        parent:null};
+       
     let bb = new BigBang(
-      stateToArray(
-        searchSolution(state1),[]).slice(0,-1),onTick,emptyFunc,emptyFunc,stopWhen); 
+      stateToArray(searchSolution(state1),[]).slice(0,-1),
+      {onTick: onTick, stopWhen: stopWhen}); 
+      
      bb.start();
    });
 }
