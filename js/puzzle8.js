@@ -218,8 +218,34 @@ if (runTests) {
     score:countDisplacedTiles(theBoard),
     moves:0,
     parent:null};
-  let p1 = searchSolution(state1);
-  console.log(stateToArray(p1,[]));
+  //let p1 = searchSolution(state1);
+  //console.log(stateToArray(p1,[]));
+  //console.log(nextSolution(produceNeighbourStates(state1)));
+  console.log(searchSolution2(state1));
+}
+
+/**
+ * Queue<P8State> -> StateStream
+ */
+function nextSolution(queue) {
+  return {
+    first:dequeuePQ(queue,(elem)=>{return (elem.score+elem.moves);},false),
+    next: (state) => {
+      return nextSolution(queue.concat(produceNeighbourStates(state)))},
+  };
+}
+
+
+/**
+ * P8State -> P8State
+ * note: may go do infinite loop
+ */
+function searchSolution2(state) {
+  let link = nextSolution(produceNeighbourStates(state));
+  while(link.first.score!=0) {
+    link = link.next(link.first);
+  }
+  return link.first;
 }
 
 /**

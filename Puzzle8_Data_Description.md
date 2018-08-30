@@ -49,6 +49,10 @@ A record that contains data on dequeued from priority queue element:
     * score (Natural)
     * number of moves (Natural)
     * parent state (Puzzle 8 State) 
+    * 
+## StateStream is an Object
+- first: Puzzle 8 State
+- next: (Puzzle 8 State -> Link)
 
 # ACTIONS
 
