@@ -211,6 +211,7 @@ function searchSolution(state) {
   }
   return state;
 }
+
 if (runTests) {
   let theBoard = board21;
   let state1 = {
@@ -220,32 +221,6 @@ if (runTests) {
     parent:null};
   //let p1 = searchSolution(state1);
   //console.log(stateToArray(p1,[]));
-  //console.log(nextSolution(produceNeighbourStates(state1)));
-  console.log(searchSolution2(state1));
-}
-
-/**
- * Queue<P8State> -> StateStream
- */
-function nextSolution(queue) {
-  return {
-    first:dequeuePQ(queue,(elem)=>{return (elem.score+elem.moves);},false),
-    next: (state) => {
-      return nextSolution(queue.concat(produceNeighbourStates(state)))},
-  };
-}
-
-
-/**
- * P8State -> P8State
- * note: may go do infinite loop
- */
-function searchSolution2(state) {
-  let link = nextSolution(produceNeighbourStates(state));
-  while(link.first.score!=0) {
-    link = link.next(link.first);
-  }
-  return link.first;
 }
 
 /**
@@ -254,10 +229,19 @@ function searchSolution2(state) {
  * @param {Array} acc
  * @returns {Array}
  */
-function stateToArray(state,acc) {
+function stateToArray(state,acc=[]) {
     if(state==null) {
         return acc;
     } else {
-        return stateToArray(state.parent,acc.concat([state.board]));
+        return stateToArray(state.parent,acc.concat([state]));
     }
+}
+
+/* Array -> X
+  generator out of an array
+*/
+function* arrStream(arr) {
+  while(arr.length>0) {
+    yield arr.pop();
+  } 
 }

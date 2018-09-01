@@ -1,50 +1,45 @@
-/**
- * WS is a data structure that describes
- * the state of the world within the defined game data
- * 
- * HandlerCollection is an object with fields
- * - onTick (WS->...)
- * - onKey (WS Key -> ...)
- * - toDraw (WS -> ...)
- * - stopWhen (WS -> Boolean)
- */
- 
-/**
- * WS HandlerCollection -> void
- * Simple game engine.
- */
 function BigBang(ws,hc) {
   
-  const TIME_DELAY = 500;
   let intervalId = null;
   
-  let keyEventListener = (event) => {
-    if(hc.hasOwnProperty("onKey")) hc.onKey(ws,event.keyCode);
+  const identFunc = ws => {return ws;}; 
+  
+  const handlers = {
+    onTick: hc.onTick ? hc.onTick : identFunc,
+    toDraw: hc.toDraw ? hc.toDraw : identFunc,
+    onKey: hc.onKey ? hc.onKey : identFunc,
+    stopWhen: hc.stopWhen ? hc.stopWhen : (ws) => {return false;},
+    runAfter: hc.runAfter ? hc.runAfter : identFunc,
   };
   
-  let animate = (ts) => {
-    
-    document.addEventListener(
-      "keydown",keyEventListener,{capture:true,once:true});
-    
-    if(hc.hasOwnProperty("onTick")) if(!ws.paused) hc.onTick(ws); 
-    
-    if(hc.hasOwnProperty("toDraw")) hc.toDraw(ws);
-    
-    if(hc.hasOwnProperty("stopWhen")) {
-      hc.stopWhen(ws) ? 
-        window.clearInterval(intervalId) : start();
+  let keyEventObject = {
+    ws:ws,
+    handleEvent: function(event) {
+      //console.log(event.code);
+      this.ws = handlers.onKey(this.ws,event.code);
+    },
+    animate: function() {
+      document.addEventListener(
+        "keydown",this,{capture:true,once:true});
+      this.ws = handlers.onTick(this.ws);
+      handlers.toDraw(this.ws);
+      start(this.ws);
+    }
+  }
+  let fps = 1;
+  let start = (ws) => {
+    if(handlers.stopWhen(ws)) {
+      console.log('game stopped');
+      window.clearInterval(intervalId);
+      handlers.runAfter(ws);
     } else {
-      start();
+      setTimeout(()=>{
+        intervalId = window.requestAnimationFrame(ts=>{keyEventObject.animate(ws)});
+      },1000/fps);
     }
   };
   
-  let start = () => {
-    intervalId = window.setTimeout(
-      window.requestAnimationFrame,TIME_DELAY,animate);
-  };
-  
   return {
-    start:start,
+    start: () => {start(ws)}
   };
 }

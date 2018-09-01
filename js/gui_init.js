@@ -25,28 +25,32 @@ function init(board) {
     }
   }); 
 
-  function onTick(boards) {
-    pre.textContent = boardToString(boards.pop());
-  }
-
-  function stopWhen(boards) {
-    return boards.length==0;
-  }
-
    let button = document.querySelector("main > section:nth-of-type(2) > button");
    
    button.addEventListener("click",(event)=>{
+
+     function onTick(data) {
+       pre.textContent = boardToString(data.value.board);
+       return stream.next();
+     }
+     
+     function stopWhen(data) {
+       return data.done;
+     }
+  
      let state1 = {
        board:board,
        score:countDisplacedTiles(board),
        moves:0,
        parent:null};
        
-    let bb = new BigBang(
-      stateToArray(searchSolution(state1),[]).slice(0,-1),
-      {onTick: onTick, stopWhen: stopWhen}); 
-      
-     bb.start();
+      const stream = arrStream(stateToArray(searchSolution(state1)));
+    
+      let bb = new BigBang(
+        stream.next(),
+        {onTick: onTick, stopWhen: stopWhen}); 
+        
+       bb.start();
    });
 }
 
